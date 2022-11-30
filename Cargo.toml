@@ -1,0 +1,16 @@
+[package]
+name = "token-authorization-rules-example"
+version = "0.1.0"
+edition = "2021"
+license = "../LICENSE"
+publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+token-authorization-rules = { version = "0.1.0", path = "../token-authorization-rules/program" }
+solana-client = "1.10.32"
+solana-sdk = "1.13.5"
+serde = { version = "1.0.147", features = ["derive"]}
+serde_json = "1.0.87"
+rmp-serde = "1.1.1"
