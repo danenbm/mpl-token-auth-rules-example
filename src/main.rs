@@ -6,8 +6,8 @@ use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
-    commitment_config::CommitmentConfig, native_token::LAMPORTS_PER_SOL, signature::Signer,
-    signer::keypair::Keypair, transaction::Transaction,
+    native_token::LAMPORTS_PER_SOL, signature::Signer, signer::keypair::Keypair,
+    transaction::Transaction,
 };
 
 fn main() {
@@ -17,19 +17,16 @@ fn main() {
 
     let payer = Keypair::new();
 
-    let _signature = rpc_client
+    let signature = rpc_client
         .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
         .unwrap();
 
-    let balance = rpc_client
-        .wait_for_balance_with_commitment(
-            &payer.pubkey(),
-            Some(LAMPORTS_PER_SOL),
-            CommitmentConfig::default(),
-        )
-        .unwrap();
-
-    println!("Payer balance: {}", balance);
+    loop {
+        let confirmed = rpc_client.confirm_transaction(&signature).unwrap();
+        if confirmed {
+            break;
+        }
+    }
 
     // Find RuleSet PDA.
     let (ruleset_addr, _ruleset_bump) =

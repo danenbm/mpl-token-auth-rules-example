@@ -7,7 +7,6 @@ This is example code for https://github.com/metaplex-foundation/token-authorizat
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.11s
      Running `target/debug/mpl-token-auth-rules-example`
-Payer balance: 1000000000
 RuleSet {
     operations: {
         Transfer: All {
@@ -15,10 +14,10 @@ RuleSet {
                 All {
                     rules: [
                         AdditionalSigner {
-                            account: AgC3hkhSaiENJEsa1dmZL3XJKGxAiE7LjXUu41umgz2a,
+                            account: AXFLbZYT8yhzpbNMe5AmrnEYWmeQGsTjmyuBEaiqXjCb,
                         },
                         AdditionalSigner {
-                            account: AgC3hkhSaiENJEsa1dmZL3XJKGxAiE7LjXUu41umgz2a,
+                            account: AXFLbZYT8yhzpbNMe5AmrnEYWmeQGsTjmyuBEaiqXjCb,
                         },
                     ],
                 },
@@ -29,6 +28,6 @@ RuleSet {
         },
     },
 }
-Create tx signature: 5Sp15rxUTL5GcAXHHFX9PzqfdMtUBMEDLComYH3SmzmU9kFCih61JdqJLbQ2K49pGa9h5DhoVDexDSmgH3JfHgt3
-Validate tx signature: 4hQvajdxWixK5jupj4ehh9gQELFKJHKarUqLspaNDtuF5em9MayJgPd3VdzjiD2a7hXWqbunxh2ioYykdQBuHmPN
+Create tx signature: 2u2Nso3c8RDGf2Xhp7XFKEy8e9nKAciVBaZsXemZzBGWkxkgmr8pzJdHLG31ieX1K5EDtjoDDh8J8CoUm7aY9h5i
+Validate tx signature: 3sfyUh3dXPPKk3dsgQqgPhdmUx6bWE3N9753nFRZNUueyYQhNULWAx1oqtvbB1XHt7rZwX63qrEod2HcKc6cGkoa
 ```
