@@ -1,3 +1,7 @@
+use mpl_token_auth_rules::{
+    state::{Operation, Rule, RuleSet},
+    Payload,
+};
 use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
@@ -5,14 +9,10 @@ use solana_sdk::{
     commitment_config::CommitmentConfig, native_token::LAMPORTS_PER_SOL, signature::Signer,
     signer::keypair::Keypair, transaction::Transaction,
 };
-use token_authorization_rules::{
-    state::{Operation, Rule, RuleSet},
-    Payload, PayloadVec,
-};
 
 fn main() {
-    let url = "http://127.0.0.1:8899".to_string();
-    //let url = "https://api.devnet.solana.com".to_string();
+    // let url = "http://127.0.0.1:8899".to_string();
+    let url = "https://api.devnet.solana.com".to_string();
     let rpc_client = RpcClient::new(url);
 
     let payer = Keypair::new();
@@ -32,10 +32,8 @@ fn main() {
     println!("Payer balance: {}", balance);
 
     // Find RuleSet PDA.
-    let (ruleset_addr, _ruleset_bump) = token_authorization_rules::pda::find_ruleset_address(
-        payer.pubkey(),
-        "da rulez".to_string(),
-    );
+    let (ruleset_addr, _ruleset_bump) =
+        mpl_token_auth_rules::pda::find_ruleset_address(payer.pubkey(), "test ruleset".to_string());
 
     // Create some rules.
     let adtl_signer = Rule::AdditionalSigner {
@@ -67,11 +65,11 @@ fn main() {
         .unwrap();
 
     // Create a `create` instruction.
-    let create_ix = token_authorization_rules::instruction::create(
-        token_authorization_rules::id(),
+    let create_ix = mpl_token_auth_rules::instruction::create(
+        mpl_token_auth_rules::id(),
         payer.pubkey(),
         ruleset_addr,
-        "da rulez".to_string(),
+        "test ruleset".to_string(),
         serialized_data,
     );
 
@@ -89,24 +87,17 @@ fn main() {
 
     println!("Create tx signature: {}", signature);
 
-    // Store the payloads that represent rule-specific data that will be used for validation.
-    let mut payloads = PayloadVec::new();
-    let unused = 0;
-    payloads
-        .add(
-            &Rule::Amount { amount: unused },
-            Payload::Amount { amount: 2 },
-        )
-        .unwrap();
+    // Store the payload of data to validate against the rule definition.
+    let payload = Payload::new(None, None, Some(2), None);
 
     // Create a `validate` instruction.
-    let validate_ix = token_authorization_rules::instruction::validate(
-        token_authorization_rules::id(),
+    let validate_ix = mpl_token_auth_rules::instruction::validate(
+        mpl_token_auth_rules::id(),
         payer.pubkey(),
         ruleset_addr,
-        "da rulez".to_string(),
+        "test ruleset".to_string(),
         Operation::Transfer,
-        payloads,
+        payload,
         vec![],
         vec![],
     );

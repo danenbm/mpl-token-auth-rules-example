@@ -1638,6 +1638,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "mpl-token-auth-rules"
+version = "0.1.0"
+dependencies = [
+ "borsh",
+ "num-derive",
+ "num-traits",
+ "rmp-serde",
+ "serde",
+ "serde_json",
+ "shank",
+ "solana-program",
+ "thiserror",
+]
+
+[[package]]
+name = "mpl-token-auth-rules-example"
+version = "0.1.0"
+dependencies = [
+ "mpl-token-auth-rules",
+ "rmp-serde",
+ "serde",
+ "serde_json",
+ "solana-client",
+ "solana-sdk",
+]
+
+[[package]]
 name = "nix"
 version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3453,33 +3480,6 @@ name = "tinyvec_macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
-
-[[package]]
-name = "token-authorization-rules"
-version = "0.1.0"
-dependencies = [
- "borsh",
- "num-derive",
- "num-traits",
- "rmp-serde",
- "serde",
- "serde_json",
- "shank",
- "solana-program",
- "thiserror",
-]
-
-[[package]]
-name = "token-authorization-rules-example"
-version = "0.1.0"
-dependencies = [
- "rmp-serde",
- "serde",
- "serde_json",
- "solana-client",
- "solana-sdk",
- "token-authorization-rules",
-]
 
 [[package]]
 name = "tokio"
