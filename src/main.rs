@@ -32,12 +32,15 @@ fn main() {
     let (ruleset_addr, _ruleset_bump) =
         mpl_token_auth_rules::pda::find_ruleset_address(payer.pubkey(), "test ruleset".to_string());
 
+    // Second signer.
+    let second_signer = Keypair::new();
+
     // Create some rules.
     let adtl_signer = Rule::AdditionalSigner {
         account: payer.pubkey(),
     };
     let adtl_signer2 = Rule::AdditionalSigner {
-        account: payer.pubkey(),
+        account: second_signer.pubkey(),
     };
     let amount_check = Rule::Amount { amount: 2 };
 
@@ -95,7 +98,7 @@ fn main() {
         "test ruleset".to_string(),
         Operation::Transfer,
         payload,
-        vec![],
+        vec![second_signer.pubkey()],
         vec![],
     );
 
@@ -104,7 +107,7 @@ fn main() {
     let validate_tx = Transaction::new_signed_with_payer(
         &[validate_ix],
         Some(&payer.pubkey()),
-        &[&payer],
+        &[&payer, &second_signer],
         latest_blockhash,
     );
 
