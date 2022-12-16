@@ -1,6 +1,6 @@
 use mpl_token_auth_rules::{
+    payload::{PayloadKey, PayloadType},
     state::{Operation, Rule, RuleSet},
-    Payload,
 };
 use rmp_serde::Serializer;
 use serde::Serialize;
@@ -9,10 +9,12 @@ use solana_sdk::{
     native_token::LAMPORTS_PER_SOL, signature::Signer, signer::keypair::Keypair,
     transaction::Transaction,
 };
+use std::collections::HashMap;
 
 fn main() {
     // let url = "http://127.0.0.1:8899".to_string();
     let url = "https://api.devnet.solana.com".to_string();
+
     let rpc_client = RpcClient::new(url);
 
     let payer = Keypair::new();
@@ -29,8 +31,10 @@ fn main() {
     }
 
     // Find RuleSet PDA.
-    let (ruleset_addr, _ruleset_bump) =
-        mpl_token_auth_rules::pda::find_ruleset_address(payer.pubkey(), "test ruleset".to_string());
+    let (ruleset_addr, _ruleset_bump) = mpl_token_auth_rules::pda::find_rule_set_address(
+        payer.pubkey(),
+        "test ruleset".to_string(),
+    );
 
     // Second signer.
     let second_signer = Keypair::new();
@@ -88,7 +92,7 @@ fn main() {
     println!("Create tx signature: {}", signature);
 
     // Store the payload of data to validate against the rule definition.
-    let payload = Payload::new(None, None, Some(2), None);
+    let payload = HashMap::from([(PayloadKey::Amount, PayloadType::Number(2))]);
 
     // Create a `validate` instruction.
     let validate_ix = mpl_token_auth_rules::instruction::validate(
