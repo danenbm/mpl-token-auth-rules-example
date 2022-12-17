@@ -5,19 +5,21 @@ This is example code for https://github.com/metaplex-foundation/token-authorizat
 ## Example
 ```
 $ cargo run
-    Finished dev [unoptimized + debuginfo] target(s) in 0.12s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.11s
      Running `target/debug/mpl-token-auth-rules-example`
 RuleSet {
+    rule_set_name: "test rule_set",
+    owner: 6jo3MeqjmspMsFdK7L9QakwjyV3YyVgskUtx2rugAE4j,
     operations: {
         Transfer: All {
             rules: [
                 All {
                     rules: [
                         AdditionalSigner {
-                            account: HnZiVuY53RbCg8B8PGkrfm5sCxw5uk62DwVYpACCTUdv,
+                            account: 6jo3MeqjmspMsFdK7L9QakwjyV3YyVgskUtx2rugAE4j,
                         },
                         AdditionalSigner {
-                            account: A9yxnHeGooo8XQs4MgzmhvWECvR42HjcJhnz3SxgeCr7,
+                            account: 8vqCFPbeBSKQRmafNRQcZ94AksJynXvk9xVqoH1nkGt8,
                         },
                     ],
                 },
@@ -28,6 +30,6 @@ RuleSet {
         },
     },
 }
-Create tx signature: H5gVgBVjRkuvb6KZcp3SD3QiKvuYUwNcbeW2faQ6MJN283WWWaV1gTXKx9yNGXFVssDZpK9UbHezR3swHqWkbMh
-Validate tx signature: 39yktoynizTmhoH2CLHTBqRnqTzsqH5LuUs7rhZWSGfnqLMEMqkyA8s3MPiWLE5VbmTnToMCtY2hKn14zzAteJwH
+Create tx signature: 4jKBP3AVu7RHT3z3Gcx6tYANSfYq2E9tCJu6EAdLUHjr7ZvCPiuAoRnH9wD9UrmatdokSy7TfKBSd3dzZfNU5qBN
+Validate tx signature: 52u9EgLLSpFnEP5yoJcx6uVwP1B6Mu974A2R82oS1SLw5DMQdeCsAycyZc1v5wze1rSTa9tA7ecMPcdp9cQVSqRE
 ```
