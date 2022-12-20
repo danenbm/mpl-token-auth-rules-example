@@ -8,8 +8,8 @@ use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
-    native_token::LAMPORTS_PER_SOL, signature::Signer, signer::keypair::Keypair,
-    transaction::Transaction,
+    instruction::AccountMeta, native_token::LAMPORTS_PER_SOL, signature::Signer,
+    signer::keypair::Keypair, transaction::Transaction,
 };
 
 #[repr(C)]
@@ -21,8 +21,8 @@ pub enum Operation {
 }
 
 fn main() {
-    // let url = "http://127.0.0.1:8899".to_string();
-    let url = "https://api.devnet.solana.com".to_string();
+    let url = "http://127.0.0.1:8899".to_string();
+    //let url = "https://api.devnet.solana.com".to_string();
 
     let rpc_client = RpcClient::new(url);
 
@@ -84,7 +84,6 @@ fn main() {
 
     // Create a `create` instruction.
     let create_ix = mpl_token_auth_rules::instruction::create(
-        mpl_token_auth_rules::ID,
         payer.pubkey(),
         rule_set_addr,
         serialized_data,
@@ -110,13 +109,14 @@ fn main() {
 
     // Create a `validate` instruction.
     let validate_ix = mpl_token_auth_rules::instruction::validate(
-        mpl_token_auth_rules::ID,
         rule_set_addr,
         Operation::Transfer.to_u16().unwrap(),
         payload,
         true,
-        vec![payer.pubkey(), second_signer.pubkey()],
-        vec![],
+        vec![
+            AccountMeta::new_readonly(payer.pubkey(), true),
+            AccountMeta::new_readonly(second_signer.pubkey(), true),
+        ],
     );
 
     // Add it to a transaction.
