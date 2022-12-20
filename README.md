@@ -9,17 +9,17 @@ $ cargo run
      Running `target/debug/mpl-token-auth-rules-example`
 RuleSet {
     rule_set_name: "test rule_set",
-    owner: 5fDgWEkum2epqbo1d7DRnMqkq7mJj1tFtg3tXEZykUKH,
+    owner: 3ksj6s23RLGEoanvEdnr3G7BQb2G93pMEavGbswQdgpt,
     operations: {
         0: All {
             rules: [
                 All {
                     rules: [
                         AdditionalSigner {
-                            account: 5fDgWEkum2epqbo1d7DRnMqkq7mJj1tFtg3tXEZykUKH,
+                            account: 3ksj6s23RLGEoanvEdnr3G7BQb2G93pMEavGbswQdgpt,
                         },
                         AdditionalSigner {
-                            account: AroD4vkrA27iXWpVvMiYZjVNWLNf5hTFvDUCsXYjJVof,
+                            account: HDG8JNhh5jkVVBzYcRTLJhRPLre8eBt4yHbxtp5dqX1q,
                         },
                     ],
                 },
@@ -31,6 +31,6 @@ RuleSet {
         },
     },
 }
-Create tx signature: aQttfiotAkzdAUAoNJWGztdVeskhX4oduiNQ7kq4tSb9bXVQspk4DRKsF9Cd3ogvjx6TV72RUE86TwD3XkyEZfA
-Validate tx signature: 2K6sRG5X4V6DbVYvgZsaRv5NFp3ZEvA32NFDiSfMWAvYqNpXCNg1QogJcJKXV6gY6dyBGRWPaDKeFg5qgZw5RNkP
+Create tx signature: 3S7rTpV4tqaArFKVazvHBmqpjRSLd5sURyEGUsaaqhPVdDFNoonfbmcgDQEdHKkzETSPozbVmWCcQVm3puuoXwDo
+Validate tx signature: 3eWNWVemPgoGmhztLfQaz2WgZsk4XreyUbBqWEppZ1QxqdVWHkEZzu9rbPwTTn9adNb8ZBjBKoj9ggxXC3vo79Nq
 ```

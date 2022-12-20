@@ -21,8 +21,8 @@ pub enum Operation {
 }
 
 fn main() {
-    let url = "http://127.0.0.1:8899".to_string();
-    //let url = "https://api.devnet.solana.com".to_string();
+    //let url = "http://127.0.0.1:8899".to_string();
+    let url = "https://api.devnet.solana.com".to_string();
 
     let rpc_client = RpcClient::new(url);
 
