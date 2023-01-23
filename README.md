@@ -10,12 +10,12 @@ $ cargo run
 RuleSetV1 {
     lib_version: 1,
     rule_set_name: "test rule_set",
-    owner: AQsrrJYz5HcQ5xekq6C4pXHJfsQGveidmtcsw7jXwWTn,
+    owner: Fuj4PfX1vB9hqnnGDtWeLy3BNXHp1K6NjRFviofcmQAh,
     operations: {
         "OwnerTransfer": All {
             rules: [
                 AdditionalSigner {
-                    account: 5UJXb5DzKT9FFdCYpLkF3SJAwFfvoowhK73ikxURwrXY,
+                    account: 6gT6YrEumwVeqB9BJseYSKgo59qDwuXqx4V2HGVqEkbx,
                 },
                 Amount {
                     amount: 1,
@@ -26,6 +26,6 @@ RuleSetV1 {
         },
     },
 }
-Create tx signature: b42kC74Nr37KtsM2vRRELxcK9GdiFvwYpypqc8QTJCmQdAoXYrSAxnEREpQRbQfV3xggt5UQ1oW9v2exNT4PZ9X
-Validate tx signature: 4tn9LMVtXyYaugT4iLDHCBmSrkg4dwaGA83LpkoTyJbF8YbRFksBwdPLuAYQmhgf1vTuGQ85s5zQwfLUSSy2fkhm
+Create tx signature: 65aWtC3LaeudZDQthao18ukyJksMTmHeuMEDJ8ipeqo3TaQm43K7wzMfN4VBHEdn65w2Smd2TQCTDDogZfYPSgE
+Validate tx signature: 4sojorL6pPKXiiXUtmkDgHR2ev63tQ8asu9JmanUnxnEMWbsWzu2UcV4anEf77SJoYRac66shS2HQ5DyuF48dcCj
 ```
