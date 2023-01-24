@@ -1,9 +1,8 @@
 use mpl_token_auth_rules::{
     instruction::{
-        builders::{CreateOrUpdateBuilder, ValidateBuilder},
-        CreateOrUpdateArgs, InstructionBuilder, ValidateArgs,
+        builders::{CreateOrUpdateBuilder, WriteToBufferBuilder},
+        CreateOrUpdateArgs, InstructionBuilder, WriteToBufferArgs,
     },
-    payload::{Payload, PayloadType},
     state::{CompareOp, Rule, RuleSetV1},
 };
 use num_derive::ToPrimitive;
@@ -11,36 +10,67 @@ use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
-    instruction::AccountMeta, native_token::LAMPORTS_PER_SOL, signature::Signer,
+    native_token::LAMPORTS_PER_SOL, pubkey, pubkey::Pubkey, signature::Signer,
     signer::keypair::Keypair, transaction::Transaction,
 };
+use std::fmt::Display;
+use std::fs;
 
-#[repr(C)]
-#[derive(ToPrimitive)]
-pub enum Operation {
-    OwnerTransfer,
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum TransferScenario {
+    Holder,
+    TransferDelegate,
+    SaleDelegate,
+    MigrationDelegate,
+}
+
+impl Display for TransferScenario {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Holder => write!(f, "Owner"),
+            Self::TransferDelegate => write!(f, "TransferDelegate"),
+            Self::SaleDelegate => write!(f, "SaleDelegate"),
+            Self::MigrationDelegate => write!(f, "MigrationDelegate"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum UpdateScenario {
+    MetadataAuth,
     Delegate,
-    SaleTransfer,
+    Proxy,
+}
+
+impl Display for UpdateScenario {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UpdateScenario::MetadataAuth => write!(f, "MetadataAuth"),
+            UpdateScenario::Delegate => write!(f, "Delegate"),
+            UpdateScenario::Proxy => write!(f, "Proxy"),
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Operation {
+    Transfer { scenario: TransferScenario },
+    Update { scenario: UpdateScenario },
 }
 
 impl ToString for Operation {
     fn to_string(&self) -> String {
         match self {
-            Operation::OwnerTransfer => "OwnerTransfer".to_string(),
-            Operation::Delegate => "Delegate".to_string(),
-            Operation::SaleTransfer => "SaleTransfer".to_string(),
+            Self::Transfer { scenario } => format!("Transfer:{}", scenario),
+            Self::Update { scenario } => format!("Update:{}", scenario),
         }
     }
 }
 
 fn main() {
-    //let url = "http://127.0.0.1:8899".to_string();
     let url = "https://api.devnet.solana.com".to_string();
-
     let rpc_client = RpcClient::new(url);
-
-    let payer = Keypair::new();
-
+    let payer = read_keypair(&("keypair/devnet-test-rule-set.json".to_string()));
     let signature = rpc_client
         .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
         .unwrap();
@@ -56,49 +86,102 @@ fn main() {
     // Create RuleSet
     // --------------------------------
     // Find RuleSet PDA.
-    let (rule_set_addr, _ruleset_bump) = mpl_token_auth_rules::pda::find_rule_set_address(
-        payer.pubkey(),
-        "test rule_set".to_string(),
-    );
-
-    // Additional signer.
-    let adtl_signer = Keypair::new();
-
-    // Create some rules.
-    let adtl_signer_rule = Rule::AdditionalSigner {
-        account: adtl_signer.pubkey(),
-    };
-
-    let amount_rule = Rule::Amount {
-        amount: 1,
-        operator: CompareOp::LtEq,
-        field: "Amount".to_string(),
-    };
-
-    let overall_rule = Rule::All {
-        rules: vec![adtl_signer_rule, amount_rule],
-    };
+    let rule_set_name = "TEST RULE SET".to_string();
+    let (rule_set_addr, _ruleset_bump) =
+        mpl_token_auth_rules::pda::find_rule_set_address(payer.pubkey(), rule_set_name.clone());
+    println!("{}: {}", rule_set_name, rule_set_addr);
 
     // Create a RuleSet.
-    let mut rule_set = RuleSetV1::new("test rule_set".to_string(), payer.pubkey());
-    rule_set
-        .add(Operation::OwnerTransfer.to_string(), overall_rule)
+    let mut royalty_rule_set = RuleSetV1::new(rule_set_name, payer.pubkey());
+    let transfer_rule = get_transfer_rule();
+
+    let owner_operation = Operation::Transfer {
+        scenario: TransferScenario::Holder,
+    };
+
+    let transfer_delegate_operation = Operation::Transfer {
+        scenario: TransferScenario::TransferDelegate,
+    };
+
+    let sale_delegate_operation = Operation::Transfer {
+        scenario: TransferScenario::SaleDelegate,
+    };
+
+    let migration_delegate_operation = Operation::Transfer {
+        scenario: TransferScenario::MigrationDelegate,
+    };
+
+    royalty_rule_set
+        .add(owner_operation.to_string(), transfer_rule.clone())
+        .unwrap();
+    royalty_rule_set
+        .add(
+            transfer_delegate_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(sale_delegate_operation.to_string(), transfer_rule.clone())
+        .unwrap();
+    royalty_rule_set
+        .add(migration_delegate_operation.to_string(), transfer_rule)
         .unwrap();
 
-    println!("{:#?}", rule_set);
+    println!("{:#?}", royalty_rule_set);
 
     // Serialize the RuleSet using RMP serde.
     let mut serialized_rule_set = Vec::new();
-    rule_set
+    royalty_rule_set
         .serialize(&mut Serializer::new(&mut serialized_rule_set))
         .unwrap();
+
+    // We need to write this RuleSet in chunks.
+    let (buffer_pda, _buffer_bump) = mpl_token_auth_rules::pda::find_buffer_address(payer.pubkey());
+
+    let mut overwrite = true;
+    for serialized_rule_set_chunk in serialized_rule_set.chunks(500) {
+        // Create a `write to buffer` instruction.
+        let buffer_ix = WriteToBufferBuilder::new()
+            .payer(payer.pubkey())
+            .buffer_pda(buffer_pda)
+            .build(WriteToBufferArgs::V1 {
+                serialized_rule_set: serialized_rule_set_chunk.to_vec(),
+                overwrite,
+            })
+            .unwrap()
+            .instruction();
+
+        // Add it to a transaction.
+        let latest_blockhash = rpc_client.get_latest_blockhash().unwrap();
+        let buffer_tx = Transaction::new_signed_with_payer(
+            &[buffer_ix],
+            Some(&payer.pubkey()),
+            &[&payer],
+            latest_blockhash,
+        );
+
+        println!("TX Length: {:?}", buffer_tx.message.serialize().len());
+        assert!(
+            buffer_tx.message.serialize().len() <= 1232,
+            "Transaction exceeds packet limit of 1232"
+        );
+
+        // Send and confirm transaction.
+        let signature = rpc_client.send_and_confirm_transaction(&buffer_tx).unwrap();
+        println!("Buffer tx signature: {}", signature);
+
+        if overwrite {
+            overwrite = false;
+        }
+    }
 
     // Create a `create` instruction.
     let create_ix = CreateOrUpdateBuilder::new()
         .payer(payer.pubkey())
         .rule_set_pda(rule_set_addr)
+        .buffer_pda(buffer_pda)
         .build(CreateOrUpdateArgs::V1 {
-            serialized_rule_set,
+            serialized_rule_set: vec![],
         })
         .unwrap()
         .instruction();
@@ -112,45 +195,146 @@ fn main() {
         latest_blockhash,
     );
 
-    // Send and confirm transaction.
-    let signature = rpc_client.send_and_confirm_transaction(&create_tx).unwrap();
-    println!("Create tx signature: {}", signature);
-
-    // --------------------------------
-    // Validate Operation
-    // --------------------------------
-    // Create a Keypair to simulate a token mint address.
-    let mint = Keypair::new().pubkey();
-
-    // Store the payload of data to validate against the rule definition.
-    let payload = Payload::from([("Amount".to_string(), PayloadType::Number(1))]);
-
-    // Create a `validate` instruction with the additional signer.
-    let validate_ix = ValidateBuilder::new()
-        .rule_set_pda(rule_set_addr)
-        .mint(mint)
-        .additional_rule_accounts(vec![AccountMeta::new_readonly(adtl_signer.pubkey(), true)])
-        .build(ValidateArgs::V1 {
-            operation: Operation::OwnerTransfer.to_string(),
-            payload,
-            update_rule_state: false,
-            rule_set_revision: None,
-        })
-        .unwrap()
-        .instruction();
-
-    // Add it to a transaction.
-    let latest_blockhash = rpc_client.get_latest_blockhash().unwrap();
-    let validate_tx = Transaction::new_signed_with_payer(
-        &[validate_ix],
-        Some(&payer.pubkey()),
-        &[&payer, &adtl_signer],
-        latest_blockhash,
+    assert!(
+        create_tx.message.serialize().len() <= 1232,
+        "Transaction exceeds packet limit of 1232"
     );
 
     // Send and confirm transaction.
-    let signature = rpc_client
-        .send_and_confirm_transaction(&validate_tx)
-        .unwrap();
-    println!("Validate tx signature: {}", signature);
+    let signature = rpc_client.send_and_confirm_transaction(&create_tx).unwrap();
+    println!("Create tx signature: {}", signature);
+}
+
+pub fn read_keypair(path: &String) -> Keypair {
+    let secret_string: String = fs::read_to_string(path).expect("Could not get path from string");
+
+    // Try to decode the secret string as a JSON array of ints first and then as a base58 encoded string to support Phantom private keys.
+    let secret_bytes: Vec<u8> = match serde_json::from_str(&secret_string) {
+        Ok(bytes) => bytes,
+        Err(_) => panic!("Could not deserialize string"),
+    };
+
+    Keypair::from_bytes(&secret_bytes).unwrap()
+}
+const ROOSTER_PROGRAM_ID: Pubkey = pubkey!("Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz");
+const TOKEN_METADATA_PROGRAM_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+const PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
+
+#[derive(Debug, Clone, ToPrimitive)]
+pub enum PayloadKey {
+    Amount,
+    Authority,
+    AuthoritySeeds,
+    Delegate,
+    DelegateSeeds,
+    Destination,
+    DestinationSeeds,
+    Holder,
+    Source,
+    SourceSeeds,
+}
+
+impl ToString for PayloadKey {
+    fn to_string(&self) -> String {
+        match self {
+            PayloadKey::Amount => "Amount",
+            PayloadKey::Authority => "Authority",
+            PayloadKey::AuthoritySeeds => "AuthoritySeeds",
+            PayloadKey::Delegate => "Delegate",
+            PayloadKey::DelegateSeeds => "DelegateSeeds",
+            PayloadKey::Destination => "Destination",
+            PayloadKey::DestinationSeeds => "DestinationSeeds",
+            PayloadKey::Holder => "Holder",
+            PayloadKey::Source => "Source",
+            PayloadKey::SourceSeeds => "SourceSeeds",
+        }
+        .to_string()
+    }
+}
+
+macro_rules! get_primitive_rules {
+    (
+        $nft_amount:ident,
+        $source_program_allow_list:ident,
+        $source_pda_match:ident,
+        $dest_program_allow_list:ident,
+        $dest_pda_match:ident,
+        $source_is_wallet:ident,
+        $dest_is_wallet:ident
+    ) => {
+        let $nft_amount = Rule::Amount {
+            field: PayloadKey::Amount.to_string(),
+            amount: 1,
+            operator: CompareOp::Eq,
+        };
+
+        let $source_program_allow_list = Rule::ProgramOwnedList {
+            programs: PROGRAM_ALLOW_LIST.to_vec(),
+            field: PayloadKey::Source.to_string(),
+        };
+
+        let $source_pda_match = Rule::PDAMatch {
+            program: None,
+            pda_field: PayloadKey::Source.to_string(),
+            seeds_field: PayloadKey::SourceSeeds.to_string(),
+        };
+
+        let $dest_program_allow_list = Rule::ProgramOwnedList {
+            programs: PROGRAM_ALLOW_LIST.to_vec(),
+            field: PayloadKey::Destination.to_string(),
+        };
+
+        let $dest_pda_match = Rule::PDAMatch {
+            program: None,
+            pda_field: PayloadKey::Destination.to_string(),
+            seeds_field: PayloadKey::DestinationSeeds.to_string(),
+        };
+
+        let $source_is_wallet = Rule::IsWallet {
+            field: PayloadKey::Source.to_string(),
+        };
+
+        let $dest_is_wallet = Rule::IsWallet {
+            field: PayloadKey::Destination.to_string(),
+        };
+    };
+}
+
+fn get_transfer_rule() -> Rule {
+    get_primitive_rules!(
+        nft_amount,
+        source_program_allow_list,
+        source_pda_match,
+        dest_program_allow_list,
+        dest_pda_match,
+        source_is_wallet,
+        dest_is_wallet
+    );
+
+    // --------------------------------
+    // Create RuleSet
+    // --------------------------------
+    // Compose the Owner Transfer rule as follows:
+    // amount is 1 &&
+    // (source is on allow list && source is a PDA) ||
+    // (dest is on allow list && dest is a PDA) ||
+    // (source is wallet && dest is wallet)
+    Rule::All {
+        rules: vec![
+            nft_amount,
+            Rule::Any {
+                rules: vec![
+                    Rule::All {
+                        rules: vec![source_program_allow_list, source_pda_match],
+                    },
+                    Rule::All {
+                        rules: vec![dest_program_allow_list, dest_pda_match],
+                    },
+                    Rule::All {
+                        rules: vec![source_is_wallet, dest_is_wallet],
+                    },
+                ],
+            },
+        ],
+    }
 }
