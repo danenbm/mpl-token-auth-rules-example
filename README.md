@@ -13,221 +13,200 @@ RuleSetV1 {
     rule_set_name: "Metaplex Royalty RuleSet Dev",
     owner: G4Pfn349VYQ4WFU1HMXCxKXnXNdxx1s1byoqXSrnq4Fa,
     operations: {
-        "Transfer:TransferDelegate": All {
+        "Transfer:WalletToWallet": All {
             rules: [
+                IsWallet {
+                    field: "Source",
+                },
+                IsWallet {
+                    field: "Destination",
+                },
                 Amount {
                     amount: 1,
                     operator: Eq,
                     field: "Amount",
                 },
-                Any {
+            ],
+        },
+        "Transfer:TransferDelegate": Any {
+            rules: [
+                All {
                     rules: [
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Source",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Source",
-                                    seeds_field: "SourceSeeds",
-                                },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Source",
                         },
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Destination",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Destination",
-                                    seeds_field: "DestinationSeeds",
-                                },
-                            ],
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
                         },
-                        All {
-                            rules: [
-                                IsWallet {
-                                    field: "Source",
-                                },
-                                IsWallet {
-                                    field: "Destination",
-                                },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
                         },
                     ],
                 },
             ],
         },
-        "Transfer:MigrationDelegate": All {
+        "Transfer:MigrationDelegate": Any {
             rules: [
-                Amount {
-                    amount: 1,
-                    operator: Eq,
-                    field: "Amount",
-                },
-                Any {
+                All {
                     rules: [
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Source",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Source",
-                                    seeds_field: "SourceSeeds",
-                                },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Source",
                         },
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Destination",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Destination",
-                                    seeds_field: "DestinationSeeds",
-                                },
-                            ],
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
                         },
-                        All {
-                            rules: [
-                                IsWallet {
-                                    field: "Source",
-                                },
-                                IsWallet {
-                                    field: "Destination",
-                                },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
                         },
                     ],
                 },
             ],
         },
-        "Transfer:Owner": All {
+        "Transfer:SaleDelegate": Any {
             rules: [
-                Amount {
-                    amount: 1,
-                    operator: Eq,
-                    field: "Amount",
-                },
-                Any {
+                All {
                     rules: [
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Source",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Source",
-                                    seeds_field: "SourceSeeds",
-                                },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Source",
                         },
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Destination",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Destination",
-                                    seeds_field: "DestinationSeeds",
-                                },
-                            ],
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
                         },
-                        All {
-                            rules: [
-                                IsWallet {
-                                    field: "Source",
-                                },
-                                IsWallet {
-                                    field: "Destination",
-                                },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
                         },
                     ],
                 },
             ],
         },
-        "Transfer:SaleDelegate": All {
+        "Transfer:Owner": Any {
             rules: [
-                Amount {
-                    amount: 1,
-                    operator: Eq,
-                    field: "Amount",
-                },
-                Any {
+                All {
                     rules: [
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Source",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Source",
-                                    seeds_field: "SourceSeeds",
-                                },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Source",
                         },
-                        All {
-                            rules: [
-                                ProgramOwnedList {
-                                    programs: [
-                                        metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                        Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                                    ],
-                                    field: "Destination",
-                                },
-                                PDAMatch {
-                                    program: None,
-                                    pda_field: "Destination",
-                                    seeds_field: "DestinationSeeds",
-                                },
-                            ],
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
                         },
-                        All {
-                            rules: [
-                                IsWallet {
-                                    field: "Source",
-                                },
-                                IsWallet {
-                                    field: "Destination",
-                                },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
                             ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
                         },
                     ],
                 },
@@ -236,12 +215,12 @@ RuleSetV1 {
     },
 }
 TX Length: 679
-Buffer tx signature: pER31zTKqLkHUfeagRX68KgLxLRGTbGM8u1dnBjuGjSotbHLAxLvdqtHJTCWKJhXHRvfrwHbQGQqRL5HNX1wTDt
+Buffer tx signature: sLz9aVvLhZJh83V7PAivfvqAWLK4YNWUzQBB3hWKp1bDcrWSWZrvJ1mJX9i9CGDygUZPY5tt9oHY6YhT45f6iuR
 TX Length: 679
-Buffer tx signature: 5vsS75nBYmomJxJa3JNRf4FQK6YMqMFk4SQvdNhMM6kzANgQnUvLhWtaTz1NfpkqwG4As2Ysd9wvDEf8XTZhUSQT
+Buffer tx signature: 5YLnJxPpLk2PRjr32Kj7NKjBsdztELtpC8in4kANbhckQeF3WCpwmyX4b2SrVdWptemosdgQE9zGPqB1Ucdu6tYJ
 TX Length: 679
-Buffer tx signature: 3187x2rk5shQbogY9iB8iwQgcjr21ymQw6n3eaTkYmnKD4ETYdpQt5KyMxtM5NrGpMzr6kW81WJvQQCWtasTJruF
-TX Length: 543
-Buffer tx signature: 4SqkWiuQebndQ1j5DvaLZdPnGrgBanLsvLZoFneJWjhAjX818N1CCmUvpKs7sEivCqwHeR4Bd8KxgvZhS2h8cDCz
-Create tx signature: QHZJVNaRFENsZQ3TQBYNSU48mU2rDz55U5puVgtYgHxPx3YXYEG8o8P56SPM4dD89AkLekLsRwZBtAY2EYSqMPA
+Buffer tx signature: RoztKr6Yz8DMEFfpwQK8BCLxmLmjsXK7xKFfM2oppZX65GVtW5iVG1y65vS2SSK239VQRqVzD4spERC9w1kV13A
+TX Length: 495
+Buffer tx signature: 3Mchwz81Kz8guRUTi6S5bxmACtG34Ti3uFHnJar1poHaLdancAgtGKh2ZqD7cj5vuM8ckwD5p6G4xE39CVN9ng78
+Create tx signature: 2hMrYZ7HBAcvKSvENuRG3DJfByFjacBYfHihPrZvrTVKr7sy1xDkJcPbU7kPHgQMPZeZS76YMxaQE7a5UB7yCDs7
 ```
