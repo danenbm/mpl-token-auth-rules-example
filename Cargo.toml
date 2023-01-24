@@ -8,7 +8,7 @@ publish = false
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-mpl-token-auth-rules = "0.2.6"
+mpl-token-auth-rules = "0.2.7"
 solana-client = "1.10.32"
 solana-sdk = "1.14"
 serde = { version = "1.0.149", features = ["derive"]}
