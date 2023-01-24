@@ -22,6 +22,7 @@ pub enum TransferScenario {
     TransferDelegate,
     SaleDelegate,
     MigrationDelegate,
+    WalletToWallet,
 }
 
 impl Display for TransferScenario {
@@ -31,6 +32,7 @@ impl Display for TransferScenario {
             Self::TransferDelegate => write!(f, "TransferDelegate"),
             Self::SaleDelegate => write!(f, "SaleDelegate"),
             Self::MigrationDelegate => write!(f, "MigrationDelegate"),
+            Self::WalletToWallet => write!(f, "WalletToWallet"),
         }
     }
 }
@@ -93,7 +95,7 @@ fn main() {
 
     // Create a RuleSet.
     let mut royalty_rule_set = RuleSetV1::new(rule_set_name, payer.pubkey());
-    let transfer_rule = get_transfer_rule();
+    let (transfer_rule, wallet_to_wallet_rule) = get_rules();
 
     let owner_operation = Operation::Transfer {
         scenario: TransferScenario::Holder,
@@ -111,6 +113,10 @@ fn main() {
         scenario: TransferScenario::MigrationDelegate,
     };
 
+    let wallet_to_wallet_operation = Operation::Transfer {
+        scenario: TransferScenario::WalletToWallet,
+    };
+
     royalty_rule_set
         .add(owner_operation.to_string(), transfer_rule.clone())
         .unwrap();
@@ -125,6 +131,12 @@ fn main() {
         .unwrap();
     royalty_rule_set
         .add(migration_delegate_operation.to_string(), transfer_rule)
+        .unwrap();
+    royalty_rule_set
+        .add(
+            wallet_to_wallet_operation.to_string(),
+            wallet_to_wallet_rule,
+        )
         .unwrap();
 
     println!("{:#?}", royalty_rule_set);
@@ -300,7 +312,7 @@ macro_rules! get_primitive_rules {
     };
 }
 
-fn get_transfer_rule() -> Rule {
+fn get_rules() -> (Rule, Rule) {
     get_primitive_rules!(
         nft_amount,
         source_program_allow_list,
@@ -312,29 +324,29 @@ fn get_transfer_rule() -> Rule {
     );
 
     // --------------------------------
-    // Create RuleSet
+    // Create Rules
     // --------------------------------
-    // Compose the Owner Transfer rule as follows:
-    // amount is 1 &&
-    // (source is on allow list && source is a PDA) ||
-    // (dest is on allow list && dest is a PDA) ||
-    // (source is wallet && dest is wallet)
-    Rule::All {
+    // (source is on allow list && source is a PDA && amount is 1) ||
+    // (dest is on allow list && dest is a PDA && amount is 1)
+    let transfer_rule = Rule::Any {
         rules: vec![
-            nft_amount,
-            Rule::Any {
+            Rule::All {
                 rules: vec![
-                    Rule::All {
-                        rules: vec![source_program_allow_list, source_pda_match],
-                    },
-                    Rule::All {
-                        rules: vec![dest_program_allow_list, dest_pda_match],
-                    },
-                    Rule::All {
-                        rules: vec![source_is_wallet, dest_is_wallet],
-                    },
+                    source_program_allow_list,
+                    source_pda_match,
+                    nft_amount.clone(),
                 ],
             },
+            Rule::All {
+                rules: vec![dest_program_allow_list, dest_pda_match, nft_amount.clone()],
+            },
         ],
-    }
+    };
+
+    // (source is wallet && dest is wallet && amount is 1)
+    let wallet_to_wallet_rule = Rule::All {
+        rules: vec![source_is_wallet, dest_is_wallet, nft_amount],
+    };
+
+    (transfer_rule, wallet_to_wallet_rule)
 }
