@@ -86,7 +86,7 @@ fn main() {
     // Create RuleSet
     // --------------------------------
     // Find RuleSet PDA.
-    let rule_set_name = "TEST RULE SET".to_string();
+    let rule_set_name = "Metaplex Royalty RuleSet Dev".to_string();
     let (rule_set_addr, _ruleset_bump) =
         mpl_token_auth_rules::pda::find_rule_set_address(payer.pubkey(), rule_set_name.clone());
     println!("{}: {}", rule_set_name, rule_set_addr);
