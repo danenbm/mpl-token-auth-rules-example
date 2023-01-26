@@ -7,31 +7,21 @@ This is example code for https://github.com/metaplex-foundation/token-authorizat
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.13s
      Running `target/debug/mpl-token-auth-rules-example`
-Metaplex Royalty RuleSet Dev: A6VicqkGd4J9Bk5B3j8isT5yWHJ2yPMeGBDWM6PY1Zgf
+Metaplex Royalty RuleSet Dev: GAGPGnriiYDb4vukXcfkPhr2ErW6udCx3rhx8EAu7J1d
 RuleSetV1 {
     lib_version: 1,
-    owner: 7XWRDjCtgqoMXfQxEjzE7jURHYHQ1AKJti5vYNpuqNDZ,
+    owner: 9bupd3CqcCqEzDcpjQH4xTUJFtaBNdG4kcJn7EdSd2MH,
     rule_set_name: "Metaplex Royalty RuleSet Dev",
     operations: {
-        "Transfer:WalletToWallet": All {
-            rules: [
-                IsWallet {
-                    field: "Source",
-                },
-                IsWallet {
-                    field: "Destination",
-                },
-                Amount {
-                    amount: 1,
-                    operator: Eq,
-                    field: "Amount",
-                },
-            ],
-        },
         "Transfer:TransferDelegate": Any {
             rules: [
                 All {
                     rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
                         ProgramOwnedList {
                             programs: [
                                 metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
@@ -44,15 +34,15 @@ RuleSetV1 {
                             pda_field: "Source",
                             seeds_field: "SourceSeeds",
                         },
+                    ],
+                },
+                All {
+                    rules: [
                         Amount {
                             amount: 1,
                             operator: Eq,
                             field: "Amount",
                         },
-                    ],
-                },
-                All {
-                    rules: [
                         ProgramOwnedList {
                             programs: [
                                 metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
@@ -64,103 +54,6 @@ RuleSetV1 {
                             program: None,
                             pda_field: "Destination",
                             seeds_field: "DestinationSeeds",
-                        },
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                    ],
-                },
-            ],
-        },
-        "Transfer:Owner": Any {
-            rules: [
-                All {
-                    rules: [
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Source",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Source",
-                            seeds_field: "SourceSeeds",
-                        },
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                    ],
-                },
-                All {
-                    rules: [
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Destination",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Destination",
-                            seeds_field: "DestinationSeeds",
-                        },
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                    ],
-                },
-            ],
-        },
-        "Transfer:SaleDelegate": Any {
-            rules: [
-                All {
-                    rules: [
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Source",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Source",
-                            seeds_field: "SourceSeeds",
-                        },
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                    ],
-                },
-                All {
-                    rules: [
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Destination",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Destination",
-                            seeds_field: "DestinationSeeds",
-                        },
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
                         },
                     ],
                 },
@@ -170,6 +63,11 @@ RuleSetV1 {
             rules: [
                 All {
                     rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
                         ProgramOwnedList {
                             programs: [
                                 metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
@@ -182,15 +80,15 @@ RuleSetV1 {
                             pda_field: "Source",
                             seeds_field: "SourceSeeds",
                         },
+                    ],
+                },
+                All {
+                    rules: [
                         Amount {
                             amount: 1,
                             operator: Eq,
                             field: "Amount",
                         },
-                    ],
-                },
-                All {
-                    rules: [
                         ProgramOwnedList {
                             programs: [
                                 metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
@@ -203,24 +101,126 @@ RuleSetV1 {
                             pda_field: "Destination",
                             seeds_field: "DestinationSeeds",
                         },
+                    ],
+                },
+            ],
+        },
+        "Transfer:Owner": Any {
+            rules: [
+                All {
+                    rules: [
                         Amount {
                             amount: 1,
                             operator: Eq,
                             field: "Amount",
                         },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Source",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
+                        },
                     ],
+                },
+                All {
+                    rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                    ],
+                },
+            ],
+        },
+        "Transfer:SaleDelegate": Any {
+            rules: [
+                All {
+                    rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Source",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                    ],
+                },
+            ],
+        },
+        "Transfer:WalletToWallet": All {
+            rules: [
+                Amount {
+                    amount: 1,
+                    operator: Eq,
+                    field: "Amount",
+                },
+                IsWallet {
+                    field: "Source",
+                },
+                IsWallet {
+                    field: "Destination",
                 },
             ],
         },
     },
 }
 TX Length: 679
-Buffer tx signature: 2pm3VvGgKzGU5b6EUodF11bVTFv2x6xJgzRKRjuFCL99TgznytvAaoQy3gycWnBxYMEQ9UCHdxpgieDqSsgG6c9s
+Buffer tx signature: 52Xb6owPtmjEvHPMQ1AoT8sGHWPank8EQotWr3T2tmBNgyNsQBG7RVw9TKdUTpdMvPkbYHhcDx8u8k3wSdDE9kz5
 TX Length: 679
-Buffer tx signature: 41GMj6JXairCBA4DmZMRB77kFBezFkRk43hY3qYwan3HcomzMpuVPPyXq9ib9JmmhB9DbZS3XUw4aRuCoBQvy2c4
+Buffer tx signature: 41GQwghKZyGiupw9QBPfbmaYnrW8btbbuLhvqexTN8BAYeXcw6tvPkfDM386awZ388nFYu5UzFK9qpRVcwPwYLG1
 TX Length: 679
-Buffer tx signature: f6PK9BAGTbZFhcZNMyEv3sTzb4x773i74iTrprZbiSfgiUrzGjUHCRv47h8ZZpB4spAWKPzkmazCsnneNWwb9BM
-TX Length: 497
-Buffer tx signature: 67ZZ1Wvb2XdXmMX741ErCiH7YQVjyUu9emaXhJswFjR6uPD3mFyS3rcwPSWMucdQ94PSWauxCC8AKLXTdGdGh2Zq
-Create tx signature: 43CxHM5nnWfUr3AWNJW5uWKdQYCY1a3rGCkJnKcwLhpFVkagUucYXyFECcKUJzbhDEMKYPJ92mmr71ahPWnknjzP
+Buffer tx signature: ps1BL5jaP91Wn4Yyrf1dfzxnJ9SfPuo4f9whsAdES8CHJauxTr15RnBb3Q1mAgzhim2ufyXY6fS3wtU6NuAmUVy
+TX Length: 499
+Buffer tx signature: 4vQ1BCBGAxwQtkEd5TWQFm5sV4PbuBz9YH5ZZ37wyuita6sTPqKJRgxPjUQjJf214K53mLauJsFziMjeMNetwvaL
+Create tx signature: 33FTEoVHuCFbGjcxYPHpacKNcmJn7uDKJbcafCofLeBWQU5KoibYLs87zGvAgHUoe4vUX68HAo15tyFC1WJQpSJ3
 ```
