@@ -10,8 +10,7 @@ use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
-    native_token::LAMPORTS_PER_SOL, pubkey, pubkey::Pubkey, signature::Signer,
-    signer::keypair::Keypair, transaction::Transaction,
+    pubkey, pubkey::Pubkey, signature::Signer, signer::keypair::Keypair, transaction::Transaction,
 };
 use std::fmt::Display;
 use std::fs;
@@ -70,25 +69,15 @@ impl ToString for Operation {
 }
 
 fn main() {
-    let url = "https://api.devnet.solana.com".to_string();
+    let url = "https://api.mainnet-beta.solana.com".to_string();
     let rpc_client = RpcClient::new(url);
-    let payer = read_keypair(&("keypair/devnet-test-rule-set-4.json".to_string()));
-    let signature = rpc_client
-        .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
-        .unwrap();
-
-    loop {
-        let confirmed = rpc_client.confirm_transaction(&signature).unwrap();
-        if confirmed {
-            break;
-        }
-    }
+    let payer = read_keypair(&("keypair/mainnet-test-rule-set-4.json".to_string()));
 
     // --------------------------------
     // Create RuleSet
     // --------------------------------
     // Find RuleSet PDA.
-    let rule_set_name = "Metaplex Royalty RuleSet Dev".to_string();
+    let rule_set_name = "Metaplex All Pass RuleSet".to_string();
     let (rule_set_addr, _ruleset_bump) =
         mpl_token_auth_rules::pda::find_rule_set_address(payer.pubkey(), rule_set_name.clone());
     println!("{}: {}", rule_set_name, rule_set_addr);
@@ -314,13 +303,13 @@ macro_rules! get_primitive_rules {
 
 fn get_rules() -> (Rule, Rule) {
     get_primitive_rules!(
-        nft_amount,
-        source_program_allow_list,
-        source_pda_match,
-        dest_program_allow_list,
-        dest_pda_match,
-        source_is_wallet,
-        dest_is_wallet
+        _nft_amount,
+        _source_program_allow_list,
+        _source_pda_match,
+        _dest_program_allow_list,
+        _dest_pda_match,
+        _source_is_wallet,
+        _dest_is_wallet
     );
 
     // --------------------------------
@@ -328,25 +317,10 @@ fn get_rules() -> (Rule, Rule) {
     // --------------------------------
     // (source is on allow list && source is a PDA && amount is 1) ||
     // (dest is on allow list && dest is a PDA && amount is 1)
-    let transfer_rule = Rule::Any {
-        rules: vec![
-            Rule::All {
-                rules: vec![
-                    nft_amount.clone(),
-                    source_program_allow_list,
-                    source_pda_match,
-                ],
-            },
-            Rule::All {
-                rules: vec![nft_amount.clone(), dest_program_allow_list, dest_pda_match],
-            },
-        ],
-    };
+    let transfer_rule = Rule::Pass;
 
     // (source is wallet && dest is wallet && amount is 1)
-    let wallet_to_wallet_rule = Rule::All {
-        rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
-    };
+    let wallet_to_wallet_rule = Rule::Pass;
 
     (transfer_rule, wallet_to_wallet_rule)
 }
