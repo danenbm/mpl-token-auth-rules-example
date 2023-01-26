@@ -7,58 +7,12 @@ This is example code for https://github.com/metaplex-foundation/token-authorizat
 $ cargo run
     Finished dev [unoptimized + debuginfo] target(s) in 0.13s
      Running `target/debug/mpl-token-auth-rules-example`
-Metaplex Royalty RuleSet Dev: GAGPGnriiYDb4vukXcfkPhr2ErW6udCx3rhx8EAu7J1d
+Metaplex Royalty RuleSet Dev: 4JvrhxRWDVp7vrZqPSqKYVmbvhbdXVEpCMkbjZaD8obB
 RuleSetV1 {
     lib_version: 1,
-    owner: 9bupd3CqcCqEzDcpjQH4xTUJFtaBNdG4kcJn7EdSd2MH,
+    owner: 9jh2vGnz7y3DABkPUpFBCJQVzEaTNvKHjjtPQoFdjrvi,
     rule_set_name: "Metaplex Royalty RuleSet Dev",
     operations: {
-        "Transfer:TransferDelegate": Any {
-            rules: [
-                All {
-                    rules: [
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Source",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Source",
-                            seeds_field: "SourceSeeds",
-                        },
-                    ],
-                },
-                All {
-                    rules: [
-                        Amount {
-                            amount: 1,
-                            operator: Eq,
-                            field: "Amount",
-                        },
-                        ProgramOwnedList {
-                            programs: [
-                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
-                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
-                            ],
-                            field: "Destination",
-                        },
-                        PDAMatch {
-                            program: None,
-                            pda_field: "Destination",
-                            seeds_field: "DestinationSeeds",
-                        },
-                    ],
-                },
-            ],
-        },
         "Transfer:MigrationDelegate": Any {
             rules: [
                 All {
@@ -106,6 +60,52 @@ RuleSetV1 {
             ],
         },
         "Transfer:Owner": Any {
+            rules: [
+                All {
+                    rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Source",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Source",
+                            seeds_field: "SourceSeeds",
+                        },
+                    ],
+                },
+                All {
+                    rules: [
+                        Amount {
+                            amount: 1,
+                            operator: Eq,
+                            field: "Amount",
+                        },
+                        ProgramOwnedList {
+                            programs: [
+                                metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s,
+                                Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz,
+                            ],
+                            field: "Destination",
+                        },
+                        PDAMatch {
+                            program: None,
+                            pda_field: "Destination",
+                            seeds_field: "DestinationSeeds",
+                        },
+                    ],
+                },
+            ],
+        },
+        "Transfer:TransferDelegate": Any {
             rules: [
                 All {
                     rules: [
@@ -215,12 +215,12 @@ RuleSetV1 {
     },
 }
 TX Length: 679
-Buffer tx signature: 52Xb6owPtmjEvHPMQ1AoT8sGHWPank8EQotWr3T2tmBNgyNsQBG7RVw9TKdUTpdMvPkbYHhcDx8u8k3wSdDE9kz5
+Buffer tx signature: 5fsFzCy59gTr6MiFeM7UF7ZRv7HDai743jgcUsZkQCkJctgUeyMJMr8hKof4PNbJnHziYJH5UCPPEvCkLeomYsDi
 TX Length: 679
-Buffer tx signature: 41GQwghKZyGiupw9QBPfbmaYnrW8btbbuLhvqexTN8BAYeXcw6tvPkfDM386awZ388nFYu5UzFK9qpRVcwPwYLG1
+Buffer tx signature: 5kne4P9qmN1uSvfpGxou61iPoij9bpcVvTY639wL7JGA1uZ6HL9tsYhgYLWEKzXckpbfbRtmKsZw7ZzQTD6xM4kp
 TX Length: 679
-Buffer tx signature: ps1BL5jaP91Wn4Yyrf1dfzxnJ9SfPuo4f9whsAdES8CHJauxTr15RnBb3Q1mAgzhim2ufyXY6fS3wtU6NuAmUVy
+Buffer tx signature: 4feL5cohnH4TDvw8y33DaTpZdz6pk7UgrYWkbBwa2nPu7zbgc11u1SUzTy11PBzzkdNEpniyvX7brdUvpqTjxMYu
 TX Length: 499
-Buffer tx signature: 4vQ1BCBGAxwQtkEd5TWQFm5sV4PbuBz9YH5ZZ37wyuita6sTPqKJRgxPjUQjJf214K53mLauJsFziMjeMNetwvaL
-Create tx signature: 33FTEoVHuCFbGjcxYPHpacKNcmJn7uDKJbcafCofLeBWQU5KoibYLs87zGvAgHUoe4vUX68HAo15tyFC1WJQpSJ3
+Buffer tx signature: CvviHi7iWnAruUXrKXSk5o7kBzV3ZkPDkZ71Tvn4bjY3BNksQXS9wrBbUM9jqh3A3ryrn8t7jaPA1BS7MXSBUwZ
+Create tx signature: cBEyAiUNQBdCW5cuTYgkmbAxyQYEhdBDbzHedtAY353VqaA3vsvt9PsoduG1Ddr6Kk1Pu6z16qZVBsKdjQ3TS2x
 ```
