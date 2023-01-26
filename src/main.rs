@@ -72,7 +72,7 @@ impl ToString for Operation {
 fn main() {
     let url = "https://api.devnet.solana.com".to_string();
     let rpc_client = RpcClient::new(url);
-    let payer = read_keypair(&("keypair/devnet-test-rule-set-2.json".to_string()));
+    let payer = read_keypair(&("keypair/devnet-test-rule-set-3.json".to_string()));
     let signature = rpc_client
         .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
         .unwrap();
@@ -332,20 +332,20 @@ fn get_rules() -> (Rule, Rule) {
         rules: vec![
             Rule::All {
                 rules: vec![
+                    nft_amount.clone(),
                     source_program_allow_list,
                     source_pda_match,
-                    nft_amount.clone(),
                 ],
             },
             Rule::All {
-                rules: vec![dest_program_allow_list, dest_pda_match, nft_amount.clone()],
+                rules: vec![nft_amount.clone(), dest_program_allow_list, dest_pda_match],
             },
         ],
     };
 
     // (source is wallet && dest is wallet && amount is 1)
     let wallet_to_wallet_rule = Rule::All {
-        rules: vec![source_is_wallet, dest_is_wallet, nft_amount],
+        rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
     };
 
     (transfer_rule, wallet_to_wallet_rule)
