@@ -20,7 +20,10 @@ use std::fs;
 // --------------------------------
 const ROOSTER_PROGRAM_ID: Pubkey = pubkey!("Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz");
 const TOKEN_METADATA_PROGRAM_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-const PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
+const TRANSFER_PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
+const DELEGATE_PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
+const ADVANCED_DELEGATE_PROGRAM_ALLOW_LIST: [Pubkey; 2] =
+    [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
 
 // --------------------------------
 // RuleSet operations and scenarios
@@ -170,8 +173,15 @@ impl ToString for PayloadKey {
     }
 }
 
-// Get the two rules used in this sample RuleSet.
-fn get_rules() -> (Rule, Rule) {
+struct ComposedRules {
+    transfer_rule: Rule,
+    wallet_to_wallet_rule: Rule,
+    delegate_rule: Rule,
+    advanced_delegate_rule: Rule,
+}
+
+// Get the four Composed Rules used in this RuleSet.
+fn get_composed_rules() -> ComposedRules {
     // --------------------------------
     // Create Primitive Rules
     // --------------------------------
@@ -182,17 +192,17 @@ fn get_rules() -> (Rule, Rule) {
     };
 
     let source_program_allow_list = Rule::ProgramOwnedList {
-        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        programs: TRANSFER_PROGRAM_ALLOW_LIST.to_vec(),
         field: PayloadKey::Source.to_string(),
     };
 
     let dest_program_allow_list = Rule::ProgramOwnedList {
-        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        programs: TRANSFER_PROGRAM_ALLOW_LIST.to_vec(),
         field: PayloadKey::Destination.to_string(),
     };
 
     let authority_program_allow_list = Rule::ProgramOwnedList {
-        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        programs: TRANSFER_PROGRAM_ALLOW_LIST.to_vec(),
         field: PayloadKey::Authority.to_string(),
     };
 
@@ -202,6 +212,16 @@ fn get_rules() -> (Rule, Rule) {
 
     let dest_is_wallet = Rule::IsWallet {
         field: PayloadKey::Destination.to_string(),
+    };
+
+    let delegate_program_allow_list = Rule::ProgramOwnedList {
+        programs: DELEGATE_PROGRAM_ALLOW_LIST.to_vec(),
+        field: PayloadKey::Delegate.to_string(),
+    };
+
+    let advanced_delegate_program_allow_list = Rule::ProgramOwnedList {
+        programs: ADVANCED_DELEGATE_PROGRAM_ALLOW_LIST.to_vec(),
+        field: PayloadKey::Delegate.to_string(),
     };
 
     // --------------------------------
@@ -224,10 +244,23 @@ fn get_rules() -> (Rule, Rule) {
 
     // (amount is 1 && source is wallet && dest is wallet)
     let wallet_to_wallet_rule = Rule::All {
-        rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
+        rules: vec![nft_amount.clone(), source_is_wallet, dest_is_wallet],
     };
 
-    (transfer_rule, wallet_to_wallet_rule)
+    let delegate_rule = Rule::All {
+        rules: vec![nft_amount.clone(), delegate_program_allow_list],
+    };
+
+    let advanced_delegate_rule = Rule::All {
+        rules: vec![nft_amount, advanced_delegate_program_allow_list],
+    };
+
+    ComposedRules {
+        transfer_rule,
+        wallet_to_wallet_rule,
+        delegate_rule,
+        advanced_delegate_rule,
+    }
 }
 
 // Read a keypair from a file path.
@@ -271,7 +304,7 @@ fn main() {
     let mut royalty_rule_set = RuleSetV1::new(rule_set_name, payer.pubkey());
 
     // Get transfer and wallet-to-wallet rules.
-    let (transfer_rule, wallet_to_wallet_rule) = get_rules();
+    let rules = get_composed_rules();
 
     // --------------------------------
     // Set up transfer operations
@@ -297,30 +330,33 @@ fn main() {
     };
 
     royalty_rule_set
-        .add(transfer_owner_operation.to_string(), transfer_rule.clone())
+        .add(
+            transfer_owner_operation.to_string(),
+            rules.transfer_rule.clone(),
+        )
         .unwrap();
     royalty_rule_set
         .add(
             transfer_transfer_delegate_operation.to_string(),
-            transfer_rule.clone(),
+            rules.transfer_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             transfer_sale_delegate_operation.to_string(),
-            transfer_rule.clone(),
+            rules.transfer_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             transfer_migration_delegate_operation.to_string(),
-            transfer_rule.clone(),
+            rules.transfer_rule,
         )
         .unwrap();
     royalty_rule_set
         .add(
             transfer_wallet_to_wallet_operation.to_string(),
-            wallet_to_wallet_rule,
+            rules.wallet_to_wallet_rule,
         )
         .unwrap();
 
@@ -346,25 +382,25 @@ fn main() {
     royalty_rule_set
         .add(
             metadata_delegate_authority_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             metadata_delegate_collection_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             metadata_delegate_use_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             metadata_delegate_update_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
 
@@ -394,30 +430,40 @@ fn main() {
     royalty_rule_set
         .add(
             token_delegate_sale_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
         .add(
             token_delegate_transfer_operation.to_string(),
-            transfer_rule.clone(),
+            rules.delegate_rule.clone(),
         )
         .unwrap();
+
+    // --------------------------------
+    // NOTE THIS IS THE ONLY OPERATION
+    // THAT USES THE ADVANCED DELEGATE
+    // RULE.
+    // --------------------------------
     royalty_rule_set
         .add(
             token_delegate_locked_transfer_operation.to_string(),
-            transfer_rule.clone(),
-        )
-        .unwrap();
-    royalty_rule_set
-        .add(
-            token_delegate_utility_operation.to_string(),
-            transfer_rule.clone(),
+            rules.advanced_delegate_rule,
         )
         .unwrap();
 
     royalty_rule_set
-        .add(token_delegate_staking_operation.to_string(), transfer_rule)
+        .add(
+            token_delegate_utility_operation.to_string(),
+            rules.delegate_rule.clone(),
+        )
+        .unwrap();
+
+    royalty_rule_set
+        .add(
+            token_delegate_staking_operation.to_string(),
+            rules.delegate_rule,
+        )
         .unwrap();
 
     println!("{:#?}", royalty_rule_set);
