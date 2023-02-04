@@ -54,10 +54,61 @@ impl Display for UpdateScenario {
     }
 }
 
+#[repr(C)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+pub enum MetadataDelegateRole {
+    Authority,
+    Collection,
+    Use,
+    Update,
+}
+
+#[repr(C)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+pub enum TokenDelegateRole {
+    Sale,
+    Transfer,
+    Utility,
+    Staking,
+    Standard,
+    LockedTransfer,
+    Migration = 255,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DelegateScenario {
+    Metadata(MetadataDelegateRole),
+    Token(TokenDelegateRole),
+}
+
+impl Display for DelegateScenario {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let message = match self {
+            Self::Metadata(role) => match role {
+                MetadataDelegateRole::Authority => "Authority".to_string(),
+                MetadataDelegateRole::Collection => "Collection".to_string(),
+                MetadataDelegateRole::Use => "Use".to_string(),
+                MetadataDelegateRole::Update => "Update".to_string(),
+            },
+            Self::Token(role) => match role {
+                TokenDelegateRole::Sale => "Sale".to_string(),
+                TokenDelegateRole::Transfer => "Transfer".to_string(),
+                TokenDelegateRole::LockedTransfer => "LockedTransfer".to_string(),
+                TokenDelegateRole::Utility => "Utility".to_string(),
+                TokenDelegateRole::Staking => "Staking".to_string(),
+                _ => panic!("Invalid delegate role"),
+            },
+        };
+
+        write!(f, "{message}")
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Operation {
     Transfer { scenario: TransferScenario },
     Update { scenario: UpdateScenario },
+    Delegate { scenario: DelegateScenario },
 }
 
 impl ToString for Operation {
@@ -65,6 +116,7 @@ impl ToString for Operation {
         match self {
             Self::Transfer { scenario } => format!("Transfer:{}", scenario),
             Self::Update { scenario } => format!("Update:{}", scenario),
+            Self::Delegate { scenario } => format!("Delegate:{}", scenario),
         }
     }
 }
