@@ -273,28 +273,60 @@ fn main() {
     // Get transfer and wallet-to-wallet rules.
     let (transfer_rule, wallet_to_wallet_rule) = get_rules();
 
-    // Set up transfer operations.
-    let owner_operation = Operation::Transfer {
+    // --------------------------------
+    // Set up transfer operations
+    // --------------------------------
+    let transfer_owner_operation = Operation::Transfer {
         scenario: TransferScenario::Holder,
     };
 
-    let transfer_delegate_operation = Operation::Transfer {
+    let transfer_transfer_delegate_operation = Operation::Transfer {
         scenario: TransferScenario::TransferDelegate,
     };
 
-    let sale_delegate_operation = Operation::Transfer {
+    let transfer_sale_delegate_operation = Operation::Transfer {
         scenario: TransferScenario::SaleDelegate,
     };
 
-    let migration_delegate_operation = Operation::Transfer {
+    let transfer_migration_delegate_operation = Operation::Transfer {
         scenario: TransferScenario::MigrationDelegate,
     };
 
-    let wallet_to_wallet_operation = Operation::Transfer {
+    let transfer_wallet_to_wallet_operation = Operation::Transfer {
         scenario: TransferScenario::WalletToWallet,
     };
 
-    // Setup metadata delegate operations.
+    royalty_rule_set
+        .add(transfer_owner_operation.to_string(), transfer_rule.clone())
+        .unwrap();
+    royalty_rule_set
+        .add(
+            transfer_transfer_delegate_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            transfer_sale_delegate_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            transfer_migration_delegate_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            transfer_wallet_to_wallet_operation.to_string(),
+            wallet_to_wallet_rule,
+        )
+        .unwrap();
+
+    // --------------------------------
+    // Setup metadata delegate operations
+    // --------------------------------
     let metadata_delegate_authority_operation = Operation::Delegate {
         scenario: DelegateScenario::Metadata(MetadataDelegateRole::Authority),
     };
@@ -311,7 +343,34 @@ fn main() {
         scenario: DelegateScenario::Metadata(MetadataDelegateRole::Update),
     };
 
-    // setup token delegate operations.
+    royalty_rule_set
+        .add(
+            metadata_delegate_authority_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            metadata_delegate_collection_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            metadata_delegate_use_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            metadata_delegate_update_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+
+    // --------------------------------
+    // Setup token delegate operations
+    // --------------------------------
     let token_delegate_sale_operation = Operation::Delegate {
         scenario: DelegateScenario::Token(TokenDelegateRole::Sale),
     };
@@ -333,29 +392,39 @@ fn main() {
     };
 
     royalty_rule_set
-        .add(owner_operation.to_string(), transfer_rule.clone())
-        .unwrap();
-    royalty_rule_set
         .add(
-            transfer_delegate_operation.to_string(),
+            token_delegate_sale_operation.to_string(),
             transfer_rule.clone(),
         )
         .unwrap();
     royalty_rule_set
-        .add(sale_delegate_operation.to_string(), transfer_rule.clone())
-        .unwrap();
-    royalty_rule_set
-        .add(migration_delegate_operation.to_string(), transfer_rule)
+        .add(
+            token_delegate_transfer_operation.to_string(),
+            transfer_rule.clone(),
+        )
         .unwrap();
     royalty_rule_set
         .add(
-            wallet_to_wallet_operation.to_string(),
-            wallet_to_wallet_rule,
+            token_delegate_locked_transfer_operation.to_string(),
+            transfer_rule.clone(),
         )
+        .unwrap();
+    royalty_rule_set
+        .add(
+            token_delegate_utility_operation.to_string(),
+            transfer_rule.clone(),
+        )
+        .unwrap();
+
+    royalty_rule_set
+        .add(token_delegate_staking_operation.to_string(), transfer_rule)
         .unwrap();
 
     println!("{:#?}", royalty_rule_set);
 
+    // --------------------------------
+    // Put RuleSet on chain
+    // --------------------------------
     // Serialize the RuleSet using RMP serde.
     let mut serialized_rule_set = Vec::new();
     royalty_rule_set
@@ -422,6 +491,7 @@ fn main() {
         latest_blockhash,
     );
 
+    // Check size.
     assert!(
         create_tx.message.serialize().len() <= 1232,
         "Transaction exceeds packet limit of 1232"
