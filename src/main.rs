@@ -5,7 +5,6 @@ use mpl_token_auth_rules::{
     },
     state::{CompareOp, Rule, RuleSetV1},
 };
-use num_derive::ToPrimitive;
 use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
@@ -16,6 +15,18 @@ use solana_sdk::{
 use std::fmt::Display;
 use std::fs;
 
+// --------------------------------
+// Define Program Allow List
+// --------------------------------
+const ROOSTER_PROGRAM_ID: Pubkey = pubkey!("Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz");
+const TOKEN_METADATA_PROGRAM_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+const PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
+
+// --------------------------------
+// RuleSet operations and scenarios
+// from token-metadata
+// --------------------------------
+// Type from token-metadata.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TransferScenario {
     Holder,
@@ -37,6 +48,7 @@ impl Display for TransferScenario {
     }
 }
 
+// Type from token-metadata.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum UpdateScenario {
     MetadataAuth,
@@ -54,6 +66,7 @@ impl Display for UpdateScenario {
     }
 }
 
+// Type from token-metadata.
 #[repr(C)]
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum MetadataDelegateRole {
@@ -75,6 +88,7 @@ pub enum TokenDelegateRole {
     Migration = 255,
 }
 
+// Type from token-metadata.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DelegateScenario {
     Metadata(MetadataDelegateRole),
@@ -104,6 +118,7 @@ impl Display for DelegateScenario {
     }
 }
 
+// Type from token-metadata.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Operation {
     Transfer { scenario: TransferScenario },
@@ -119,6 +134,113 @@ impl ToString for Operation {
             Self::Delegate { scenario } => format!("Delegate:{}", scenario),
         }
     }
+}
+
+// Payload key type from token-metadata.
+#[repr(C)]
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum PayloadKey {
+    Amount,
+    Authority,
+    AuthoritySeeds,
+    Delegate,
+    DelegateSeeds,
+    Destination,
+    DestinationSeeds,
+    Holder,
+    Source,
+    SourceSeeds,
+}
+
+impl ToString for PayloadKey {
+    fn to_string(&self) -> String {
+        match self {
+            PayloadKey::Amount => "Amount",
+            PayloadKey::Authority => "Authority",
+            PayloadKey::AuthoritySeeds => "AuthoritySeeds",
+            PayloadKey::Delegate => "Delegate",
+            PayloadKey::DelegateSeeds => "DelegateSeeds",
+            PayloadKey::Destination => "Destination",
+            PayloadKey::DestinationSeeds => "DestinationSeeds",
+            PayloadKey::Holder => "Holder",
+            PayloadKey::Source => "Source",
+            PayloadKey::SourceSeeds => "SourceSeeds",
+        }
+        .to_string()
+    }
+}
+
+// Get the two rules used in this sample RuleSet.
+fn get_rules() -> (Rule, Rule) {
+    // --------------------------------
+    // Create Primitive Rules
+    // --------------------------------
+    let nft_amount = Rule::Amount {
+        field: PayloadKey::Amount.to_string(),
+        amount: 1,
+        operator: CompareOp::Eq,
+    };
+
+    let source_program_allow_list = Rule::ProgramOwnedList {
+        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        field: PayloadKey::Source.to_string(),
+    };
+
+    let dest_program_allow_list = Rule::ProgramOwnedList {
+        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        field: PayloadKey::Destination.to_string(),
+    };
+
+    let authority_program_allow_list = Rule::ProgramOwnedList {
+        programs: PROGRAM_ALLOW_LIST.to_vec(),
+        field: PayloadKey::Authority.to_string(),
+    };
+
+    let source_is_wallet = Rule::IsWallet {
+        field: PayloadKey::Source.to_string(),
+    };
+
+    let dest_is_wallet = Rule::IsWallet {
+        field: PayloadKey::Destination.to_string(),
+    };
+
+    // --------------------------------
+    // Create Composed Rules from
+    // Primitive Rules
+    // --------------------------------
+    // amount is 1 && (source owner on allow list || dest owner on allow list || authority owner on allow list )
+    let transfer_rule = Rule::All {
+        rules: vec![
+            nft_amount.clone(),
+            Rule::Any {
+                rules: vec![
+                    source_program_allow_list,
+                    dest_program_allow_list,
+                    authority_program_allow_list,
+                ],
+            },
+        ],
+    };
+
+    // (amount is 1 && source is wallet && dest is wallet)
+    let wallet_to_wallet_rule = Rule::All {
+        rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
+    };
+
+    (transfer_rule, wallet_to_wallet_rule)
+}
+
+// Read a keypair from a file path.
+pub fn read_keypair(path: &String) -> Keypair {
+    let secret_string: String = fs::read_to_string(path).expect("Could not get path from string");
+
+    // Try to decode the secret string as a JSON array of ints first and then as a base58 encoded string to support Phantom private keys.
+    let secret_bytes: Vec<u8> = match serde_json::from_str(&secret_string) {
+        Ok(bytes) => bytes,
+        Err(_) => panic!("Could not deserialize string"),
+    };
+
+    Keypair::from_bytes(&secret_bytes).unwrap()
 }
 
 fn main() {
@@ -148,8 +270,10 @@ fn main() {
     // Create a RuleSet.
     let mut royalty_rule_set = RuleSetV1::new(rule_set_name, payer.pubkey());
 
+    // Get transfer and wallet-to-wallet rules.
     let (transfer_rule, wallet_to_wallet_rule) = get_rules();
 
+    // Set up operations.
     let owner_operation = Operation::Transfer {
         scenario: TransferScenario::Holder,
     };
@@ -268,126 +392,4 @@ fn main() {
     // Send and confirm transaction.
     let signature = rpc_client.send_and_confirm_transaction(&create_tx).unwrap();
     println!("Create tx signature: {}", signature);
-}
-
-pub fn read_keypair(path: &String) -> Keypair {
-    let secret_string: String = fs::read_to_string(path).expect("Could not get path from string");
-
-    // Try to decode the secret string as a JSON array of ints first and then as a base58 encoded string to support Phantom private keys.
-    let secret_bytes: Vec<u8> = match serde_json::from_str(&secret_string) {
-        Ok(bytes) => bytes,
-        Err(_) => panic!("Could not deserialize string"),
-    };
-
-    Keypair::from_bytes(&secret_bytes).unwrap()
-}
-const ROOSTER_PROGRAM_ID: Pubkey = pubkey!("Roostrnex2Z9Y2XZC49sFAdZARP8E4iFpEnZC5QJWdz");
-const TOKEN_METADATA_PROGRAM_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
-const PROGRAM_ALLOW_LIST: [Pubkey; 2] = [TOKEN_METADATA_PROGRAM_ID, ROOSTER_PROGRAM_ID];
-
-#[derive(Debug, Clone, ToPrimitive)]
-pub enum PayloadKey {
-    Amount,
-    Authority,
-    AuthoritySeeds,
-    Delegate,
-    DelegateSeeds,
-    Destination,
-    DestinationSeeds,
-    Holder,
-    Source,
-    SourceSeeds,
-}
-
-impl ToString for PayloadKey {
-    fn to_string(&self) -> String {
-        match self {
-            PayloadKey::Amount => "Amount",
-            PayloadKey::Authority => "Authority",
-            PayloadKey::AuthoritySeeds => "AuthoritySeeds",
-            PayloadKey::Delegate => "Delegate",
-            PayloadKey::DelegateSeeds => "DelegateSeeds",
-            PayloadKey::Destination => "Destination",
-            PayloadKey::DestinationSeeds => "DestinationSeeds",
-            PayloadKey::Holder => "Holder",
-            PayloadKey::Source => "Source",
-            PayloadKey::SourceSeeds => "SourceSeeds",
-        }
-        .to_string()
-    }
-}
-
-macro_rules! get_primitive_rules {
-    (
-        $nft_amount:ident,
-        $source_program_allow_list:ident,
-        $dest_program_allow_list:ident,
-        $authority_program_allow_list:ident,
-        $source_is_wallet:ident,
-        $dest_is_wallet:ident
-    ) => {
-        let $nft_amount = Rule::Amount {
-            field: PayloadKey::Amount.to_string(),
-            amount: 1,
-            operator: CompareOp::Eq,
-        };
-
-        let $source_program_allow_list = Rule::ProgramOwnedList {
-            programs: PROGRAM_ALLOW_LIST.to_vec(),
-            field: PayloadKey::Source.to_string(),
-        };
-
-        let $dest_program_allow_list = Rule::ProgramOwnedList {
-            programs: PROGRAM_ALLOW_LIST.to_vec(),
-            field: PayloadKey::Destination.to_string(),
-        };
-
-        let $authority_program_allow_list = Rule::ProgramOwnedList {
-            programs: PROGRAM_ALLOW_LIST.to_vec(),
-            field: PayloadKey::Authority.to_string(),
-        };
-
-        let $source_is_wallet = Rule::IsWallet {
-            field: PayloadKey::Source.to_string(),
-        };
-
-        let $dest_is_wallet = Rule::IsWallet {
-            field: PayloadKey::Destination.to_string(),
-        };
-    };
-}
-
-fn get_rules() -> (Rule, Rule) {
-    get_primitive_rules!(
-        nft_amount,
-        source_program_allow_list,
-        dest_program_allow_list,
-        authority_program_allow_list,
-        source_is_wallet,
-        dest_is_wallet
-    );
-
-    // --------------------------------
-    // Create Rules
-    // --------------------------------
-    // amount is 1 && (source owner on allow list || dest owner on allow list || authority owner on allow list )
-    let transfer_rule = Rule::All {
-        rules: vec![
-            nft_amount.clone(),
-            Rule::Any {
-                rules: vec![
-                    source_program_allow_list,
-                    dest_program_allow_list,
-                    authority_program_allow_list,
-                ],
-            },
-        ],
-    };
-
-    // (amount is 1 && source is wallet && dest is wallet)
-    let wallet_to_wallet_rule = Rule::All {
-        rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
-    };
-
-    (transfer_rule, wallet_to_wallet_rule)
 }

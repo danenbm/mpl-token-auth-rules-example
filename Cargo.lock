@@ -1693,8 +1693,6 @@ name = "mpl-token-auth-rules-example"
 version = "0.1.0"
 dependencies = [
  "mpl-token-auth-rules",
- "num-derive",
- "num-traits",
  "rmp-serde",
  "serde",
  "serde_json",
