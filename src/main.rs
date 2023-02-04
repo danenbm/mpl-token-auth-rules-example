@@ -8,6 +8,7 @@ use mpl_token_auth_rules::{
 use rmp_serde::Serializer;
 use serde::Serialize;
 use solana_client::rpc_client::RpcClient;
+use solana_sdk::compute_budget::ComputeBudgetInstruction;
 use solana_sdk::{
     native_token::LAMPORTS_PER_SOL, pubkey, pubkey::Pubkey, signature::Signer,
     signer::keypair::Keypair, transaction::Transaction,
@@ -279,7 +280,7 @@ pub fn read_keypair(path: &String) -> Keypair {
 fn main() {
     let url = "https://api.devnet.solana.com".to_string();
     let rpc_client = RpcClient::new(url);
-    let payer = read_keypair(&("keypair/devnet-test-rule-set-4.json".to_string()));
+    let payer = read_keypair(&("keypair/devnet-test-rule-set-5.json".to_string()));
     let signature = rpc_client
         .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
         .unwrap();
@@ -528,10 +529,13 @@ fn main() {
         .unwrap()
         .instruction();
 
+    // Increase compute budget for this one.
+    let compute_budget_ix = ComputeBudgetInstruction::set_compute_unit_limit(400_000);
+
     // Add it to a transaction.
     let latest_blockhash = rpc_client.get_latest_blockhash().unwrap();
     let create_tx = Transaction::new_signed_with_payer(
-        &[create_ix],
+        &[compute_budget_ix, create_ix],
         Some(&payer.pubkey()),
         &[&payer],
         latest_blockhash,
