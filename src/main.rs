@@ -280,7 +280,7 @@ pub fn read_keypair(path: &String) -> Keypair {
 fn main() {
     let url = "https://api.devnet.solana.com".to_string();
     let rpc_client = RpcClient::new(url);
-    let payer = read_keypair(&("keypair/devnet-test-rule-set-7.json".to_string()));
+    let payer = read_keypair(&("keypair/devnet-test-rule-set-8.json".to_string()));
     let signature = rpc_client
         .request_airdrop(&payer.pubkey(), LAMPORTS_PER_SOL)
         .unwrap();
