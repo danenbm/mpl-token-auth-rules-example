@@ -95,6 +95,7 @@ fn main() {
 
     // Create a RuleSet.
     let mut royalty_rule_set = RuleSetV1::new(rule_set_name, payer.pubkey());
+
     let (transfer_rule, wallet_to_wallet_rule) = get_rules();
 
     let owner_operation = Operation::Transfer {
@@ -268,9 +269,8 @@ macro_rules! get_primitive_rules {
     (
         $nft_amount:ident,
         $source_program_allow_list:ident,
-        $source_pda_match:ident,
         $dest_program_allow_list:ident,
-        $dest_pda_match:ident,
+        $authority_program_allow_list:ident,
         $source_is_wallet:ident,
         $dest_is_wallet:ident
     ) => {
@@ -285,21 +285,14 @@ macro_rules! get_primitive_rules {
             field: PayloadKey::Source.to_string(),
         };
 
-        let $source_pda_match = Rule::PDAMatch {
-            program: None,
-            pda_field: PayloadKey::Source.to_string(),
-            seeds_field: PayloadKey::SourceSeeds.to_string(),
-        };
-
         let $dest_program_allow_list = Rule::ProgramOwnedList {
             programs: PROGRAM_ALLOW_LIST.to_vec(),
             field: PayloadKey::Destination.to_string(),
         };
 
-        let $dest_pda_match = Rule::PDAMatch {
-            program: None,
-            pda_field: PayloadKey::Destination.to_string(),
-            seeds_field: PayloadKey::DestinationSeeds.to_string(),
+        let $authority_program_allow_list = Rule::ProgramOwnedList {
+            programs: PROGRAM_ALLOW_LIST.to_vec(),
+            field: PayloadKey::Authority.to_string(),
         };
 
         let $source_is_wallet = Rule::IsWallet {
@@ -316,9 +309,8 @@ fn get_rules() -> (Rule, Rule) {
     get_primitive_rules!(
         nft_amount,
         source_program_allow_list,
-        source_pda_match,
         dest_program_allow_list,
-        dest_pda_match,
+        authority_program_allow_list,
         source_is_wallet,
         dest_is_wallet
     );
@@ -326,24 +318,21 @@ fn get_rules() -> (Rule, Rule) {
     // --------------------------------
     // Create Rules
     // --------------------------------
-    // (source is on allow list && source is a PDA && amount is 1) ||
-    // (dest is on allow list && dest is a PDA && amount is 1)
-    let transfer_rule = Rule::Any {
+    // amount is 1 && (source owner on allow list || dest owner on allow list || authority owner on allow list )
+    let transfer_rule = Rule::All {
         rules: vec![
-            Rule::All {
+            nft_amount.clone(),
+            Rule::Any {
                 rules: vec![
-                    nft_amount.clone(),
                     source_program_allow_list,
-                    source_pda_match,
+                    dest_program_allow_list,
+                    authority_program_allow_list,
                 ],
-            },
-            Rule::All {
-                rules: vec![nft_amount.clone(), dest_program_allow_list, dest_pda_match],
             },
         ],
     };
 
-    // (source is wallet && dest is wallet && amount is 1)
+    // (amount is 1 && source is wallet && dest is wallet)
     let wallet_to_wallet_rule = Rule::All {
         rules: vec![nft_amount, source_is_wallet, dest_is_wallet],
     };
