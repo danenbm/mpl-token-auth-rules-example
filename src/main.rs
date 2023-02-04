@@ -273,7 +273,7 @@ fn main() {
     // Get transfer and wallet-to-wallet rules.
     let (transfer_rule, wallet_to_wallet_rule) = get_rules();
 
-    // Set up operations.
+    // Set up transfer operations.
     let owner_operation = Operation::Transfer {
         scenario: TransferScenario::Holder,
     };
@@ -292,6 +292,44 @@ fn main() {
 
     let wallet_to_wallet_operation = Operation::Transfer {
         scenario: TransferScenario::WalletToWallet,
+    };
+
+    // Setup metadata delegate operations.
+    let metadata_delegate_authority_operation = Operation::Delegate {
+        scenario: DelegateScenario::Metadata(MetadataDelegateRole::Authority),
+    };
+
+    let metadata_delegate_collection_operation = Operation::Delegate {
+        scenario: DelegateScenario::Metadata(MetadataDelegateRole::Collection),
+    };
+
+    let metadata_delegate_use_operation = Operation::Delegate {
+        scenario: DelegateScenario::Metadata(MetadataDelegateRole::Use),
+    };
+
+    let metadata_delegate_update_operation = Operation::Delegate {
+        scenario: DelegateScenario::Metadata(MetadataDelegateRole::Update),
+    };
+
+    // setup token delegate operations.
+    let token_delegate_sale_operation = Operation::Delegate {
+        scenario: DelegateScenario::Token(TokenDelegateRole::Sale),
+    };
+
+    let token_delegate_transfer_operation = Operation::Delegate {
+        scenario: DelegateScenario::Token(TokenDelegateRole::Transfer),
+    };
+
+    let token_delegate_locked_transfer_operation = Operation::Delegate {
+        scenario: DelegateScenario::Token(TokenDelegateRole::LockedTransfer),
+    };
+
+    let token_delegate_utility_operation = Operation::Delegate {
+        scenario: DelegateScenario::Token(TokenDelegateRole::Utility),
+    };
+
+    let token_delegate_staking_operation = Operation::Delegate {
+        scenario: DelegateScenario::Token(TokenDelegateRole::Staking),
     };
 
     royalty_rule_set
